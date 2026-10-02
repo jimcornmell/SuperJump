@@ -1,0 +1,32 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>com.cornmell.superjump</id>
+    <name>SuperJump</name>
+    <vendor>com.cornmell</vendor>
+    <description><![CDATA[
+        <p><b>SuperJump</b> jumps to a website based on the text under the cursor.</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
+
+    <actions>
+        <action id="SuperJump" class="com.cornmell.superjump.SuperJumpAction" text="Super Jump" description="Jump to website based on selected text"
+                icon="/icons/actionIcon.svg">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift u"/>
+        </action>
+    </actions>
+    <actions>
+        <action id="SuperJumpGit" class="com.cornmell.superjump.SuperJumpAction" text="Super Jump to Git source repository" description="Jump to git repo based on file and line number"
+                icon="/icons/actionIcon.svg">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift w"/>
+        </action>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.cornmell.superjump.UrlSettings"/>
+        <projectConfigurable groupId="tools" displayName="SuperJump" instance="com.cornmell.superjump.UrlSettingsConfigurable" id="com.cornmell.superjump.UrlSettingsConfigurable"/>
+    </extensions>
+</idea-plugin>
