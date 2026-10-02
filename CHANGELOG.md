@@ -6,8 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-10-01
+## [0.0.1] - 2026-10-02
 
 ### Added
 - Initial project setup with Gradle and Kotlin DSL.
-- Initial release.
+- Initial Beta release.
