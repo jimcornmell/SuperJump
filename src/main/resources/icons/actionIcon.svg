@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 40 40">
+  <title>SuperJump</title>
+
+  <!-- Browser window -->
+  <rect x="3.5" y="3.5" width="33" height="33" rx="7"
+        fill="#1E293B" stroke="#60A5FA" stroke-width="2"/>
+
+  <!-- Browser toolbar -->
+  <path d="M4.5 12h31" stroke="#60A5FA" stroke-width="2"/>
+  <circle cx="9" cy="8" r="1.4" fill="#93C5FD"/>
+  <circle cx="14" cy="8" r="1.4" fill="#93C5FD"/>
+  <circle cx="19" cy="8" r="1.4" fill="#93C5FD"/>
+
+  <!-- Hyperlink -->
+  <g fill="none" stroke="#F8FAFC" stroke-width="3.2" stroke-linecap="round">
+    <path d="M16.2 25.4l-2.5 2.5a5.1 5.1 0 0 1-7.2-7.2l4.1-4.1a5.1 5.1 0 0 1 7.2 0"/>
+    <path d="M23.8 14.6l2.5-2.5a5.1 5.1 0 0 1 7.2 7.2l-4.1 4.1a5.1 5.1 0 0 1-7.2 0"/>
+    <path d="M13.2 20h13.6"/>
+  </g>
+</svg>
