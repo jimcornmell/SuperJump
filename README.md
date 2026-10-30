@@ -60,6 +60,15 @@ and you are currently on line 42, **SuperJumpGit** will take you
 
 * https://github.com/jimcornmell/SuperJump/blob/main/src/main/kotlin/com/cornmell/superjump/TextToUrl.kt#L42
 
+Git lookup runs in the background. GitHub, GitLab (`gitlab.com` and `gitlab.*` hosts), Bitbucket Cloud,
+and Azure DevOps remotes use their respective file-view URLs; other hosts use GitHub-style URLs.
+SSH remotes are converted to HTTPS without carrying over the SSH port. HTTP(S) remote ports are preserved.
+Detached checkouts link to the current commit. Paths and branch names are URL-encoded.
+
+When text is selected, SuperJump matches the selection as a whole rather than using the document's caret column.
+Unexpected action failures are logged as warnings; Git lookup failures show a separate error message.
+Source text and destination URLs are not written to the action's informational logs.
+
 ## **SuperJump**
 
 **SuperJump** analyzes the text under the cursor and jumps to a specific location based on the text. The following table

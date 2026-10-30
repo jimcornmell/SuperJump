@@ -9,6 +9,23 @@ class TextToUrlTest {
     private val textToUrl = TextToUrl()
 
     @Test
+    fun `selection uses the whole selected text instead of the document column`() {
+        assertEquals(
+            "https://www.colorhexa.com/112233",
+            textToUrl.toUrl("notes.txt", 0, -1, "#112233 #445566")
+        )
+    }
+
+    @Test
+    fun `character offset after a tab identifies the current word`() {
+        val line = "\t#112233 #445566"
+        assertEquals(
+            "https://www.colorhexa.com/445566",
+            textToUrl.toUrl("notes.txt", 0, line.indexOf("445566")+2, line)
+        )
+    }
+
+    @Test
     fun `returns the GitHub root for blank text`() {
         assertNull(textToUrl.toUrl("", 1, 1, "  "))
     }
@@ -86,7 +103,7 @@ class TextToUrlTest {
     fun `converts Gradle coordinates to Maven Central paths`() {
         assertEquals(
             "https://central.sonatype.com/artifact/org.example/library/1.2.3",
-            textToUrl.toUrl("", 1, 1, "org.example:library:1.2.3")
+            textToUrl.toUrl("build.gradle", 1, 1, "org.example:library:1.2.3")
         )
     }
 
@@ -94,7 +111,7 @@ class TextToUrlTest {
     fun `converts Gradle coordinates from within line to Maven Central paths`() {
         assertEquals(
             "https://central.sonatype.com/artifact/org.example/library/1.2.3",
-            textToUrl.toUrl("", 1, 1, "testImplementation(\"org.example:library:1.2.3\")")
+            textToUrl.toUrl("build.gradle", 1, 1, "testImplementation(\"org.example:library:1.2.3\")")
         )
     }
 
@@ -113,7 +130,7 @@ class TextToUrlTest {
 
     @Test
     fun `routes simple commands to cheat sh`() {
-        assertEquals("https://cheat.sh/kubectl", textToUrl.toUrl("", 1, 1, "kubectl"))
+        assertEquals("https://tldr.inbrowser.app/pages/common/kubectl", textToUrl.toUrl("run.sh", 1, 1, "kubectl"))
     }
 
     // @Test
@@ -141,14 +158,14 @@ class TextToUrlTest {
 
     @Test
     fun `recognizes command`() {
-        assertEquals("https://cheat.sh/kubectl", textToUrl.toUrl("", 1, 1, "kubectl"))
+        assertEquals("https://tldr.inbrowser.app/pages/common/kubectl", textToUrl.toUrl("run.sh", 1, 1, "kubectl"))
     }
 
     @Test
     fun `recognizes gradle repo`() {
         assertEquals(
             "https://central.sonatype.com/artifact/org.example/library/1.2.3",
-            textToUrl.toUrl("", 1, 1, "\"org.example:library:1.2.3\"")
+            textToUrl.toUrl("build.gradle", 1, 1, "\"org.example:library:1.2.3\"")
         )
     }
 
@@ -156,7 +173,7 @@ class TextToUrlTest {
     fun `recognizes gradle repo with number`() {
         assertEquals(
             "https://central.sonatype.com/artifact/org.eclipse.jdt/junit/3.3.0-v20070606-0010",
-            textToUrl.toUrl("", 1, 1, "\"org.eclipse.jdt:junit:3.3.0-v20070606-0010\"")
+            textToUrl.toUrl("build.gradle", 1, 1, "\"org.eclipse.jdt:junit:3.3.0-v20070606-0010\"")
         )
     }
 
@@ -168,11 +185,65 @@ class TextToUrlTest {
         )
     }
 
-    // @Test
-    // fun `Does not recognize Dockerfile from`() {
-        // assertEquals(
-            // "https://github.com/_/ubuntu",
-            // textToUrl.toUrl("DOCKERfile", 1, 1, "from ubuntu:24.04")
-        // )
-    // }
+    @Test
+    fun `ignores from clause in a file that is not a Dockerfile`() {
+        assertEquals(
+            "https://central.sonatype.com/artifact/ubuntu/24.04",
+            textToUrl.toUrl("build.gradle", 1, 1, "from ubuntu:24.04")
+        )
+    }
+
+    @Test
+    fun markdownCodeBlockLanguageMatchesFileRegex() {
+        val doc = "# Title\n```dockerfile\nfrom ubuntu:24.04\n```\nfrom ubuntu:24.04\n"
+        val expected = textToUrl.toUrl("Dockerfile", 1, 1, "from ubuntu:24.04")
+        assertEquals(expected, textToUrl.toUrl("README.md", 2, 1, "from ubuntu:24.04", doc))
+        assertEquals(textToUrl.toUrl("notes.txt", 1, 1, "from ubuntu:24.04"), textToUrl.toUrl("README.md", 4, 1, "from ubuntu:24.04", doc))
+    }
+
+    private val dockerUrl get() = textToUrl.toUrl("Dockerfile", 1, 1, "from ubuntu:24.04")
+    private val plainUrl get() = textToUrl.toUrl("notes.txt", 1, 1, "from ubuntu:24.04")
+
+    @Test
+    fun markdownLanguageMatchIsCaseInsensitive() {
+        val doc = "```Dockerfile\nfrom ubuntu:24.04\n```"
+        assertEquals(dockerUrl, textToUrl.toUrl("a.md", 1, 1, "from ubuntu:24.04", doc))
+    }
+
+    @Test
+    fun markdownLanguageWithExtraInfoStringStillMatches() {
+        val doc = "```dockerfile title=\"x\"\nfrom ubuntu:24.04\n```"
+        assertEquals(dockerUrl, textToUrl.toUrl("a.md", 1, 1, "from ubuntu:24.04", doc))
+    }
+
+    @Test
+    fun markdownTildeFenceMatches() {
+        val doc = "~~~dockerfile\nfrom ubuntu:24.04\n~~~"
+        assertEquals(dockerUrl, textToUrl.toUrl("a.md", 1, 1, "from ubuntu:24.04", doc))
+    }
+
+    @Test
+    fun markdownBlockWithOtherLanguageDoesNotMatch() {
+        val doc = "```kotlin\nfrom ubuntu:24.04\n```"
+        assertEquals(plainUrl, textToUrl.toUrl("a.md", 1, 1, "from ubuntu:24.04", doc))
+    }
+
+    @Test
+    fun markdownBlockWithoutLanguageDoesNotMatch() {
+        val doc = "```\nfrom ubuntu:24.04\n```"
+        assertEquals(plainUrl, textToUrl.toUrl("a.md", 1, 1, "from ubuntu:24.04", doc))
+    }
+
+    @Test
+    fun markdownSecondBlockUsesItsOwnLanguage() {
+        val doc = "```kotlin\nval x = 1\n```\n\n```dockerfile\nfrom ubuntu:24.04\n```"
+        assertEquals(dockerUrl, textToUrl.toUrl("a.md", 5, 1, "from ubuntu:24.04", doc))
+        assertEquals(plainUrl, textToUrl.toUrl("a.md", 1, 1, "from ubuntu:24.04", doc))
+    }
+
+    @Test
+    fun nonMarkdownFileIgnoresFencesInText() {
+        val doc = "```dockerfile\nfrom ubuntu:24.04\n```"
+        assertEquals(plainUrl, textToUrl.toUrl("notes.txt", 1, 1, "from ubuntu:24.04", doc))
+    }
 }

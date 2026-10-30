@@ -8,55 +8,105 @@ class TextToUrl {
         lineNumber: Int,
         columnNumber: Int,
         lineText: String,
+        documentText: CharSequence? = null,
     ): String? {
+        val codeBlockLanguage = documentText
+            ?.takeIf { filename.endsWith(".md", true) || filename.endsWith(".markdown", true) }
+            ?.let { findCodeBlockLanguage(it, lineNumber) }
         val word = findCurrentWord(lineText, lineNumber, columnNumber)
 
-        if (word?.isEmpty() == true) {
-            return ""
-        }
+        val deadline = System.nanoTime() + REGEX_BUDGET_NANOS
 
-        for ((enabled, _, regex, url, fileRegex) in Jumpers.all) {
-            if (!enabled) {
+        for (jumper in Jumpers.all) {
+            if (!jumper.enabled) {
                 continue
             }
 
+            val fileRegex = jumper.fileRegex
+
             if (fileRegex != null &&
-                !fileRegex.matches(filename)
+                !fileRegex.matches(filename) &&
+                !(codeBlockLanguage != null && jumper.fileRegexIgnoreCase?.matches(codeBlockLanguage) == true)
             ) {
                 continue
             }
 
-            // Try the current word first.
-            if (word != null) {
-                val match = regex.find(word)
+            try {
+                // Try the current word first, then the whole line.
+                val match = word?.let { jumper.regex.find(Bounded(it, deadline)) }
+                    ?: jumper.regex.find(Bounded(lineText, deadline))
 
                 if (match != null) {
-                    return expandUrl(url, match)
+                    return UrlSupport.expand(jumper.url, match)
                 }
-            }
-
-            // Then try the whole line.
-            val match = regex.find(lineText)
-
-            if (match != null) {
-                return expandUrl(url, match)
+            } catch (_: RegexTimeoutException) {
+                // A pathological user regex must not freeze the editor; skip it.
+                return null
             }
         }
 
         return null
     }
 
-    private fun expandUrl(
-        template: String,
-        match: MatchResult,
-    ): String {
-        var url = template
+    private class RegexTimeoutException : RuntimeException()
 
-        for (i in 1..match.groupValues.lastIndex) {
-            url = url.replace($$"$$$i", match.groupValues[i])
+    /** Aborts regex matching once the shared time budget is spent (guards against catastrophic backtracking). */
+    private class Bounded(
+        private val inner: CharSequence,
+        private val deadline: Long,
+    ) : CharSequence {
+        private var reads = 0
+
+        override val length: Int get() = inner.length
+
+        override fun get(index: Int): Char {
+            if (++reads and 0x3FF == 0 && System.nanoTime() > deadline) {
+                throw RegexTimeoutException()
+            }
+            return inner[index]
         }
 
-        return url
+        override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
+            Bounded(inner.subSequence(startIndex, endIndex), deadline)
+
+        override fun toString(): String = inner.toString()
+    }
+
+    // Returns the info-string language of the fenced code block containing lineNumber (0-based), if any.
+    private fun findCodeBlockLanguage(
+        text: CharSequence,
+        lineNumber: Int,
+    ): String? {
+        var fence: String? = null
+        var language: String? = null
+
+        for ((index, line) in text.lineSequence().withIndex()) {
+            if (index > lineNumber) {
+                break
+            }
+
+            val trimmed = line.trimStart()
+            val marker = if (trimmed.startsWith("```")) "`" else if (trimmed.startsWith("~~~")) "~" else null
+
+            if (marker == null) {
+                continue
+            }
+
+            val run = trimmed.takeWhile { it.toString() == marker }
+
+            if (fence == null) {
+                fence = run
+                language = trimmed.drop(run.length).trim().split(Regex("[\\s{]"), 2).first().ifEmpty { null }
+            } else if (run.startsWith(fence) && trimmed.drop(run.length).isBlank()) {
+                if (index == lineNumber) {
+                    continue
+                }
+                fence = null
+                language = null
+            }
+        }
+
+        return if (fence != null) language else null
     }
 
     private fun findCurrentWord(
@@ -88,4 +138,8 @@ class TextToUrl {
     private fun isWordDelimiter(char: Char): Boolean =
         char.isWhitespace() ||
                 char in "()[]{}<>,;:\"'`"
+
+    private companion object {
+        const val REGEX_BUDGET_NANOS = 500_000_000L
+    }
 }

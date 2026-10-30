@@ -1,22 +1,28 @@
 package com.cornmell.superjump.settings
 
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.ui.Messages
+import com.intellij.ui.ToolbarDecorator
+import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBTextField
+import javax.swing.DefaultCellEditor
+import javax.swing.event.DocumentEvent
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.table.JBTable
-import java.awt.Component
-import javax.swing.DefaultCellEditor
-import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
-import javax.swing.SwingConstants
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
 
 class SuperJumpConfigurable : Configurable {
     private var tableModel: JumperTableModel? = null
     private var table: JBTable? = null
+    private var fallbackCheckBox: JBCheckBox? = null
 
     override fun getDisplayName(): String = "SuperJump"
 
@@ -27,127 +33,151 @@ class SuperJumpConfigurable : Configurable {
             JBTable(model).apply {
                 rowHeight = 28
 
+                // Commit in-progress edits when focus leaves the table.
+                putClientProperty("terminateEditOnFocusLost", true)
+
                 selectionModel.selectionMode =
                     ListSelectionModel.SINGLE_SELECTION
 
                 columnModel.getColumn(0).apply {
                     preferredWidth = 60
                     maxWidth = 60
-
-                    cellRenderer = CheckBoxRenderer()
-                    cellEditor = DefaultCellEditor(JCheckBox())
                 }
 
                 columnModel.getColumn(1).preferredWidth = 160
                 columnModel.getColumn(2).preferredWidth = 350
                 columnModel.getColumn(3).preferredWidth = 350
                 columnModel.getColumn(4).preferredWidth = 250
+
+                // Push text edits into the model on every keystroke so the dialog notices the change (Apply button).
+                for (column in 1..4) {
+                    val field = JBTextField()
+                    field.document.addDocumentListener(
+                        object : DocumentAdapter() {
+                            override fun textChanged(e: DocumentEvent) {
+                                val row = editingRow
+                                if (isEditing && editingColumn == column && row in 0 until model.rowCount) {
+                                    model.setValueAt(field.text, row, column)
+                                }
+                            }
+                        },
+                    )
+                    columnModel.getColumn(column).cellEditor = DefaultCellEditor(field)
+                }
             }
 
         tableModel = model
         table = jumperTable
 
+        fun stopEditing() {
+            if (jumperTable.isEditing) {
+                jumperTable.cellEditor.stopCellEditing()
+            }
+        }
+
+        fun select(row: Int) {
+            if (row in 0 until model.rowCount) {
+                jumperTable.setRowSelectionInterval(row, row)
+            }
+        }
+
+        val decorated =
+            ToolbarDecorator
+                .createDecorator(jumperTable)
+                .setAddAction {
+                    stopEditing()
+                    model.addRow(JumperState(enabled = true, name = "New Jumper", regex = "", url = ""))
+                    select(model.rowCount - 1)
+                }.setRemoveAction {
+                    stopEditing()
+                    val selected = jumperTable.selectedRow
+
+                    if (selected >= 0) {
+                        model.removeRow(selected)
+                        select(selected.coerceAtMost(model.rowCount - 1))
+                    }
+                }.setMoveUpAction {
+                    stopEditing()
+                    val selected = jumperTable.selectedRow
+
+                    if (selected > 0) {
+                        model.moveRow(selected, selected - 1)
+                        select(selected - 1)
+                    }
+                }.setMoveDownAction {
+                    stopEditing()
+                    val selected = jumperTable.selectedRow
+
+                    if (selected >= 0 && selected < model.rowCount - 1) {
+                        model.moveRow(selected, selected + 1)
+                        select(selected + 1)
+                    }
+                }.addExtraAction(
+                    object : DumbAwareAction("Restore Defaults", "Replace all jumpers with the defaults", AllIcons.Actions.Rollback) {
+                        override fun actionPerformed(e: AnActionEvent) {
+                            val result =
+                                Messages.showYesNoDialog(
+                                    "Replace all jumpers with the default configuration?",
+                                    "Restore Defaults",
+                                    null,
+                                )
+
+                            if (result == Messages.YES) {
+                                table?.cellEditor?.cancelCellEditing()
+                                model.setJumpers(SuperJumpSettings.defaultJumpers())
+                            }
+                        }
+                    },
+                ).createPanel()
+
         return panel {
+            row {
+                fallbackCheckBox = checkBox("Fall back to jumping to Git when no regular expression matches").component
+            }
+
             row {
                 label("Jumpers")
             }
 
             row {
-                scrollCell(jumperTable)
+                comment(
+                    "The first enabled jumper whose Regex matches the selection, word or line wins. " +
+                        $$"Use $1, $2, ... in the URL for regex capture groups. " +
+                        "File Regex (optional) limits a jumper to matching file names or Markdown code block languages.",
+                )
+            }
+
+            row {
+                cell(decorated)
                     .align(Align.FILL)
                     .resizableColumn()
             }.resizableRow()
-
-            row {
-                button("Add") {
-                    val row = model.rowCount
-
-                    model.addRow(
-                        JumperState(
-                            enabled = true,
-                            name = "New Jumper",
-                            regex = "",
-                            url = "",
-                        ),
-                    )
-
-                    jumperTable.setRowSelectionInterval(row, row)
-                }
-
-                button("Remove") {
-                    val selected = jumperTable.selectedRow
-
-                    if (selected >= 0) {
-                        model.removeRow(selected)
-
-                        if (model.rowCount > 0) {
-                            val row = selected.coerceAtMost(model.rowCount - 1)
-                            jumperTable.setRowSelectionInterval(row, row)
-                        }
-                    }
-                }
-
-                button("Move Up") {
-                    val selected = jumperTable.selectedRow
-
-                    if (selected > 0) {
-                        if (jumperTable.isEditing) {
-                            jumperTable.cellEditor.stopCellEditing()
-                        }
-
-                        model.moveRow(selected, selected - 1)
-                        jumperTable.setRowSelectionInterval(selected - 1, selected - 1)
-                    }
-                }
-
-                button("Move Down") {
-                    val selected = jumperTable.selectedRow
-
-                    if (selected >= 0 && selected < model.rowCount - 1) {
-                        if (jumperTable.isEditing) {
-                            jumperTable.cellEditor.stopCellEditing()
-                        }
-
-                        model.moveRow(selected, selected + 1)
-                        jumperTable.setRowSelectionInterval(selected + 1, selected + 1)
-                    }
-                }
-
-                button("Defaults") {
-                    val result = com.intellij.openapi.ui.Messages.showYesNoDialog(
-                        "Replace all jumpers with the default configuration?",
-                        "Restore Defaults",
-                        null,
-                    )
-
-                    if (result == com.intellij.openapi.ui.Messages.YES) {
-                        table?.cellEditor?.cancelCellEditing()
-                        model.setJumpers(SuperJumpSettings.defaultJumpers())
-                    }
-                }
-            }
         }
     }
 
     override fun isModified(): Boolean {
         val model = tableModel ?: return false
+        val settings = SuperJumpSettings.getInstance()
 
-        return model.jumpers != SuperJumpSettings.getInstance().jumpers
+        return model.jumpers != settings.jumpers ||
+            fallbackCheckBox?.isSelected != settings.fallbackToGit
     }
 
     override fun apply() {
         val model = tableModel ?: return
 
-        validateRows(model)
-
-        // Commit a checkbox/text edit before reading the model.
+        // Commit a checkbox/text edit before validating and reading the model.
         if (table?.isEditing == true) {
             table?.cellEditor?.stopCellEditing()
         }
 
+        validateRows(model)
+
         SuperJumpSettings
             .getInstance()
             .updateJumpers(model.jumpers)
+
+        fallbackCheckBox?.let { SuperJumpSettings.getInstance().updateFallbackToGit(it.isSelected) }
     }
 
     override fun reset() {
@@ -158,11 +188,14 @@ class SuperJumpConfigurable : Configurable {
                 .getInstance()
                 .jumpers,
         )
+
+        fallbackCheckBox?.isSelected = SuperJumpSettings.getInstance().fallbackToGit
     }
 
     override fun disposeUIResources() {
         tableModel = null
         table = null
+        fallbackCheckBox = null
     }
 
     private fun validateRows(model: JumperTableModel) {
@@ -187,43 +220,17 @@ class SuperJumpConfigurable : Configurable {
                 )
             }
 
-            if (!jumper.fileRegex.isNullOrBlank()) {
+            val fileRegex = jumper.fileRegex
+
+            if (!fileRegex.isNullOrBlank()) {
                 try {
-                    Regex(jumper.fileRegex.toString())
+                    Regex(fileRegex)
                 } catch (e: IllegalArgumentException) {
                     throw ConfigurationException(
                         "Invalid file regex in row ${index + 1}: ${e.message}",
                     )
                 }
             }
-        }
-    }
-
-    private class CheckBoxRenderer : DefaultTableCellRenderer() {
-        private val checkBox = JCheckBox()
-
-        init {
-            checkBox.horizontalAlignment = CENTER
-        }
-
-        override fun getTableCellRendererComponent(
-            table: javax.swing.JTable,
-            value: Any?,
-            isSelected: Boolean,
-            hasFocus: Boolean,
-            row: Int,
-            column: Int,
-        ): Component {
-            checkBox.isSelected = value == true
-
-            checkBox.background =
-                if (isSelected) {
-                    table.selectionBackground
-                } else {
-                    table.background
-                }
-
-            return checkBox
         }
     }
 

@@ -5,6 +5,11 @@
     <vendor>com.cornmell</vendor>
     <description><![CDATA[
         <p><b>SuperJump</b> jumps to a website based on the text under the cursor.</p>
+        <ul>
+            <li><b>Super Jump</b> (Ctrl+Shift+9): matches the selection, word or line against configurable regex "jumpers" and opens the resulting URL.</li>
+            <li><b>Super Jump to Git source repository</b> (Ctrl+Shift+0): opens the current file and line on GitHub, GitLab, Bitbucket or Azure DevOps.</li>
+        </ul>
+        <p>Configure jumpers under Settings | Tools | SuperJump. URL templates can use <code>$1</code>, <code>$2</code>, ... for regex capture groups.</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -22,14 +27,6 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl 0"/>
         </action>
-
-        <action
-            id="SuperJump.WhatsNew"
-            class="com.cornmell.superjump.actions.WhatsNewAction"
-            text="What's New"
-            description="View what's new in SuperJump">
-            <add-to-group group-id="ToolsMenu" anchor="last"/>
-        </action>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -38,6 +35,7 @@
             instance="com.cornmell.superjump.settings.SuperJumpConfigurable"
             id="com.cornmell.superjump.settings.SuperJumpConfigurable"
             displayName="SuperJump"/>
+        <notificationGroup id="SuperJump" displayType="BALLOON"/>
     </extensions>
 
 </idea-plugin>

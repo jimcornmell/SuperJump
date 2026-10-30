@@ -4,6 +4,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.0
+
+### Added
+* Support for code blocks in markdown files.
+* New "Super Jump to Git source repository" action (Ctrl+Shift+0) that opens the current file and line on GitHub, GitLab, Bitbucket or Azure.
+* New setting to choose whether Super Jump falls back to jumping to Git when no regular expression matches.
+* Errors and missing URLs are reported through SuperJump notifications instead of failing silently.
+* Settings state is now versioned to allow future migrations.
+* Expanded the plugin description, README, EXAMPLE.md and added EXAMPLE.sh (including Linux command examples).
+* Added unit tests for Git URL building, URL support and text-to-URL matching.
+
+### Fixed
+* Improves some of the regular expressions.
+* Fixes some errors being reported, although plugin was in fact working.
+* Jumper matching now uses the selection, word or line under the cursor, and skips jumpers with invalid regexes instead of breaking every jump.
+* Settings: text edits to jumpers are picked up immediately so the Apply button appears.
+* Removed the unused "What's New" action registration.
+
 ## 1.0.0 - Initial Public Release
 
 ### Added
