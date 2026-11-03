@@ -234,7 +234,9 @@ class SuperJumpConfigurable : Configurable {
         }
     }
 
-    private class JumperTableModel : AbstractTableModel() {
+    internal class JumperTableModel(
+        initialJumpers: List<JumperState> = SuperJumpSettings.getInstance().jumpers,
+    ) : AbstractTableModel() {
         private val columns =
             arrayOf(
                 "Enabled",
@@ -244,11 +246,7 @@ class SuperJumpConfigurable : Configurable {
                 "File Regex",
             )
 
-        var jumpers: MutableList<JumperState> =
-            SuperJumpSettings
-                .getInstance()
-                .jumpers
-                .toMutableList()
+        var jumpers: MutableList<JumperState> = initialJumpers.toMutableList()
             private set
 
         override fun getRowCount(): Int = jumpers.size
@@ -327,7 +325,9 @@ class SuperJumpConfigurable : Configurable {
 
         override fun getColumnClass(column: Int): Class<*> =
             if (column == 0) {
-                Boolean::class.java
+                // Must be the boxed type: the primitive boolean class gets no checkbox renderer/editor.
+                // Java Boolean is nullable, Kotlin's is not!
+                Boolean::class.javaObjectType
             } else {
                 String::class.java
             }

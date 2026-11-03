@@ -35,7 +35,7 @@ you can use **SuperJump** to quickly navigate to that. Just open the dependency 
 
 # Quick Demo
 
-[![Quick SuperJump Demo](https://img.youtube.com/vi/arhCTjTVBFg/0.jpg)](https://www.youtube.com/watch?v=arhCTjTVBFg)
+[![Quick SuperJump Demo](https://img.youtube.com/vi/AzMIBU5uze4/0.jpg)](https://youtu.be/AzMIBU5uze4)
 
 # Example of usage:
 

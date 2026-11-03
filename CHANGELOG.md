@@ -4,6 +4,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.1
+
+### Fixed
+* Settings: the "enabled" column of the jumpers table now shows a checkbox again (column class uses the boxed Boolean type).
+
 ## 1.1.0
 
 ### Added
