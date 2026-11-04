@@ -14,6 +14,27 @@
 
 # **SuperJump**
 
+<!-- TOC -->
+* [**SuperJump**](#superjump)
+* [A Demo of SuperJump](#a-demo-of-superjump)
+* [Example of usage:](#example-of-usage)
+  * [**SuperJumpGit**](#superjumpgit)
+  * [**SuperJump**](#superjump-1)
+  * [**Markdown code blocks**](#markdown-code-blocks)
+* [Requirements](#requirements)
+* [Contributing](#contributing)
+* [Installation](#installation)
+* [Configuration](#configuration)
+  * [Urls](#urls)
+* [Keyboard shortcuts:](#keyboard-shortcuts)
+  * [IntelliJ IDEA](#intellij-idea)
+  * [IdeaVim](#ideavim)
+* [Building](#building)
+* [Feedback](#feedback)
+* [Changelog](#changelog)
+* [License](#license)
+<!-- TOC -->
+
 > [!note]
 > This plugin is new, so please report any issues you find. I will try to fix them as soon as possible.
 
@@ -33,9 +54,9 @@ Another cool use case is if you are in a Maven dependency and want to jump to th
 you can use **SuperJump** to quickly navigate to that. Just open the dependency block in your `build.gradle`/
 `build.gradle.kts` file and use **SuperJump** to jump to the dependency in the Maven repository.
 
-# Quick Demo
+# A Demo of SuperJump
 
-[![Quick SuperJump Demo](https://img.youtube.com/vi/AzMIBU5uze4/0.jpg)](https://youtu.be/AzMIBU5uze4)
+[![Quick SuperJump Demo](https://img.youtube.com/vi/Ai-K5YxlRhU/0.jpg)](https://www.youtube.com/watch?v=Ai-K5YxlRhU&vq=hd1080)
 
 # Example of usage:
 
@@ -74,28 +95,59 @@ Source text and destination URLs are not written to the action's informational l
 **SuperJump** analyzes the text under the cursor and jumps to a specific location based on the text. The following table
 shows some examples of what **SuperJump** can do:
 
-| Text                                                           | Action                                                           | Default URL                                  | Navigate to URL                                                                  |
-|----------------------------------------------------------------|------------------------------------------------------------------|----------------------------------------------|----------------------------------------------------------------------------------|
-| `CVE-2021-44228`                                               | Jump to the CVE-2021-44228 page on the configured website        | https://guide.sonatype.org/vulnerability     | https://guide.sonatype.com/vulnerability/CVE-2021-44228                          |
-| `https://jimscosmos.com/code/`                                 | Open the website in your default browser                         | N/A                                          | https://jimscosmos.com/code/                                                     |
-| `dj-1234`                                                      | Jump to the Jira ticket DJ-1234 in your configured Jira instance | https://somecompanyname.atlassian.net/browse | https://somecompanyname.atlassian.net/browse/DJ-1234                             |
-| `ls`                                                           | This looks like a command so jump to documentation for it.       | https://cheat.sh                             | https://cheat.sh/ls                                                              |
-| `#ff0000`                                                      | This looks like a colour so jump to some information             | https://www.colorhexa.com                    | https://www.colorhexa.com/ff0000                                                 |
-| `#FFCC00`                                                      | This looks like a colour so jump to some information             | https://www.colorhexa.com                    | https://www.colorhexa.com/FFCC00                                                 |
-| `implementation("org.eclipse.jdt:junit:3.3.0-v20070606-0010")` | Jump to the Maven dependency                                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit/3.3.0-v20070606-0010 |
-| `org.eclipse.jdt:junit:3.3.0-v20070606-0010`                   | Jump to the Maven dependency                                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit/3.3.0-v20070606-0010 |
-| `implementation("org.eclipse.jdt:junit")`                      | Jump to the Maven dependency with no version                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit                      |
-| `org.eclipse.jdt:junit`                                        | Jump to the Maven dependency with no version                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit                      |
-| `jimcornmell/lvim`                                             | Jump to the GitHub repository `jimcornmell/lvim`                 | https://github.com                           | https://github.com/jimcornmell/lvim                                              |
+| Text                                                                              | Action                                                           | Default URL                                  | Navigate to URL                                                                  |
+|-----------------------------------------------------------------------------------|------------------------------------------------------------------|----------------------------------------------|----------------------------------------------------------------------------------|
+| `https://jimscosmos.com/code/`                                                    | Open the website in your default browser                         | N/A                                          | https://jimscosmos.com/code/                                                     |
+| `FROM openjdk:11-jdk-slim` (in a `Dockerfile`)                                    | Jump to the Docker Hub image                                     | https://hub.docker.com/_                     | https://hub.docker.com/_/openjdk                                                 |
+| `CVE-2021-44228`                                                                  | Jump to the CVE page on the configured website                   | https://ossindex.sonatype.org/vulnerability  | https://ossindex.sonatype.org/vulnerability/CVE-2021-44228                       |
+| `implementation("org.eclipse.jdt:junit:3.3.0-v20070606-0010")` (in a Gradle file) | Jump to the Maven dependency                                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit/3.3.0-v20070606-0010 |
+| `org.eclipse.jdt:junit:3.3.0-v20070606-0010` (in a Gradle file)                   | Jump to the Maven dependency                                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit/3.3.0-v20070606-0010 |
+| `implementation("org.eclipse.jdt:junit")` (in a Gradle file)                      | Jump to the Maven dependency with no version                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit                      |
+| `org.eclipse.jdt:junit` (in a Gradle file)                                        | Jump to the Maven dependency with no version                     | https://central.sonatype.com/artifact        | https://central.sonatype.com/artifact/org.eclipse.jdt/junit                      |
+| `#ff0000`                                                                         | This looks like a colour so jump to some information             | https://www.colorhexa.com                    | https://www.colorhexa.com/ff0000                                                 |
+| `#FFCC00`                                                                         | This looks like a colour so jump to some information             | https://www.colorhexa.com                    | https://www.colorhexa.com/ffcc00                                                 |
+| `DJ-1234`                                                                         | Jump to the Jira ticket DJ-1234 in your configured Jira instance | https://somecompanyname.atlassian.net/browse | https://somecompanyname.atlassian.net/browse/DJ-1234                             |
+| `jimcornmell/lvim`                                                                | Jump to the GitHub repository `jimcornmell/lvim`                 | https://github.com                           | https://github.com/jimcornmell/lvim                                              |
+| `ls` (in a shell file)                                                            | This looks like a command so jump to documentation for it.       | https://tldr.inbrowser.app/pages/common      | https://tldr.inbrowser.app/pages/common/ls                                       |
 
 This is just a small sample of what **SuperJump** can do. You can configure the plugin to jump to any URL you want,
 see <kbd>Settings/Preferences</kbd> > <kbd>Tools</kbd> > <kbd>SuperJump</kbd>
 
+The jumpers are tried in the order shown, and the first match wins. The Dockerfile, Gradle and Linux command jumpers
+only apply in matching files (or markdown blocks, see below).
+
 > [!note]
 > Any text which does not match any of the above performs a **SuperJumpGit**, i.e. it will jump to the repository
-> location for the current file and line.
+> location for the current file and line. This is configurable: untick **Fall back to jumping to Git when no regular
+> expression matches** in <kbd>Settings/Preferences</kbd> > <kbd>Tools</kbd> > <kbd>SuperJump</kbd> to disable it
+> (it is enabled by default).
 
 Please raise a pull request if you have any suggestions for new features or improvements.
+
+## **Markdown code blocks**
+
+In markdown files (`.md`/`.markdown`), file-specific jumpers also apply inside a fenced code block (``` or `~~~`)
+whose info string names the matching language, so the block behaves as if it were that file type:
+
+| Block language               | Jumpers enabled                               |
+|------------------------------|-----------------------------------------------|
+| `Dockerfile`                 | Docker Hub image                              |
+| `groovy`                     | Gradle coordinates                            |
+| `bash`, `sh`, `zsh`, `shell` | Linux command (also `ksh`, `fish`, `console`) |
+
+````markdown
+```bash
+# Matched: jumps to documentation for ls
+ls -l
+```
+
+```
+# Not matched: a plain block has no language
+ls -l
+```
+````
+
+Jumpers that are not file-specific (URLs, CVEs, colours, etc.) work anywhere. See [EXAMPLE.md](EXAMPLE.md) for more.
 
 # Requirements
 
@@ -142,6 +194,7 @@ The defaults should work for most users, but you can configure the plugin to you
 
 There is one exception, if you want to jump to a jira ticket you need to configure the url for your jira instance.
 Then you can set the url for your jira instance in the <kbd>Jira URL</kbd> field. Highlighted in the image above.
+**Of course the Jira URL could link to any other ticketing system you use.**
 
 ## Urls
 
@@ -188,7 +241,7 @@ Essentially, you can build the plugin by running the following commands in the p
 
 # Feedback
 
-File a bug in [GitHub Issues](https://github.com/jimcornmell/superjump/issues).
+File a bug in [GitHub Issues](https://github.com/jimcornmell/SuperJump/issues).
 
 # Changelog
 

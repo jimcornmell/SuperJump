@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+
+  <!-- 1. Introduction -->
+
+    Meet Super Jump, a free, open source plugin for Intelli-J Idea.
+    It turns any text in your editor into a launchpad.
+    Put your cursor on something, press a shortcut, and Super Jump takes you straight to the right place on the web.
+    No copying, no pasting, no searching.
+
+  <break time="1s"/>
+
+  <!-- 2. Installation -->
+
+    Installing is simple.
+    Open Settings, go to Plugins, then the Marketplace tab, and search for Super Jump.
+    Click Install, and you are ready to go.
+    You can also download it from the JetBrains Marketplace website, or from the GitHub releases page.
+
+  <break time="1s"/>
+
+  <!-- 3. The two actions and their shortcuts -->
+
+    Super Jump gives you two actions.
+    The first is Super Jump, on Control Shift 9.
+    It looks at the text under your cursor and works out where you probably want to go.
+    The second is Super Jump Git, on Control Shift 0.
+    It takes you to the current file and line in your Git repository.
+    Both shortcuts can be changed under Settings, Keymap, Plugins, Super Jump.
+
+  <break time="1s"/>
+
+  <!-- 4. SuperJump: URLs -->
+
+    Let's start with the basics.
+    Put your cursor on a web address and press Control Shift 9.
+    Your default browser opens right at that page.
+    It works on plain addresses, and on links inside markdown too.
+
+  <break time="1s"/>
+
+  <!-- 5. SuperJump: CVEs -->
+
+    Spotted a vulnerability identifier in a comment or a log file?
+    Put your cursor on it, and jump.
+    Super Jump opens the vulnerability report, by default on the Sonatype guide, so you can read the details straight away.
+
+  <break time="1s"/>
+
+  <!-- 6. SuperJump: colours -->
+
+    Got a hex colour in your stylesheet?
+    Jump from it, and Super Jump opens a colour information page, showing shades, conversions, and matching palettes.
+    It works with both lower case and upper case values.
+
+  <break time="1s"/>
+
+  <!-- 8. SuperJump: repositories -->
+
+    Mention of a GitHub repository, written as owner slash name?
+    Jump, and you land on that repository on GitHub.
+
+  <break time="1s"/>
+
+  <!-- 9. SuperJump: Jira tickets -->
+
+    Ticket numbers in your comments and commit notes become one keystroke away.
+    Put your cursor on a ticket key, and Super Jump opens it in your own Jira.
+    This is the one setting you need to configure, because Super Jump needs the address of your Jira instance.
+    We will do that shortly.
+
+  <break time="1s"/>
+
+  <!-- 10. SuperJump: Linux commands -->
+
+    Super Jump also understands Linux commands.
+    Put your cursor on a command such as ls or grep, and it opens the documentation for it, by default on TLDR.
+    In markdown files, Super Jump is careful.
+    In a plain code block, the command is not matched.
+    In a block marked as bash, it is.
+    The same applies to Groovy dependencies and Docker files: mark the code block with its language, and Super Jump knows what you mean.
+    Shell scripts work directly, as you can see in the example dot S H file.
+
+  <break time="1s"/>
+
+  <!-- 7. SuperJump: dependencies -->
+
+    This one saves a lot of time.
+    In a Gradle build file, put your cursor on a dependency line and jump.
+    Super Jump opens that library on Maven Central, including the exact version if you specified one.
+    If there is no version, you get the library's main page.
+    It also works on the bare group, name, and version form, without the implementation wrapper.
+
+  <break time="1s"/>
+
+  <!-- 11. SuperJump Git -->
+
+    Now for Super Jump Git.
+    Imagine you are in a file called EXAMPLE dot S H, on line forty two, and you want to share that exact spot with a colleague.
+    Press Control Shift 0, and your browser opens the same file, on the same line, in your Git repository.
+    Copy the address and send it.
+    Done.
+
+  <break time="700ms"/>
+
+    It supports GitHub, GitLab, Bitbucket.
+    Other hosts get GitHub style links.
+    S S H remotes are converted to H T T P S automatically.
+    If you are on a detached checkout, the link points to the exact commit, so it never goes stale.
+    File paths and branch names are safely encoded.
+    And when you have text selected, Super Jump Git matches the whole selection, rather than just the caret position.
+
+  <break time="700ms"/>
+
+    The lookup runs in the background, so your editor never freezes.
+    If something goes wrong, you get a clear error message.
+
+  <break time="1s"/>
+
+  <!-- 12. The Git fallback -->
+
+    What if Super Jump does not recognise the text?
+    By default, it falls back to Super Jump Git, so you still land somewhere useful: your repository, at the current file and line.
+    For example, if your cursor is on a blank line, there is nothing to match, so you simply go to GitHub.
+    If you prefer it to do nothing, you can turn this off in the settings.
+
+  <break time="1s"/>
+
+  <!-- 13. Settings and custom jumps -->
+
+    Everything is configurable.
+    Open Settings, Tools, Super Jump.
+    First, enter your Jira address in the Jira U R L field.
+    Below that is the list of jumpers.
+    Each one pairs a regular expression, which recognises the text, with a web address, which says where to go.
+
+  <break time="700ms"/>
+
+    The regular expressions need at least one group, and groups are surrounded by round brackets.
+    The first pair of brackets is group one, the second pair is group two, and so on.
+    The Gradle coordinates jumper has three parts, so it recognises groups one, two, and three.
+    The web address then substitutes one, two, and three to build the page to jump to.
+
+  <break time="700ms"/>
+
+    You can also restrict a jumper to specific files.
+    For example, you might only want to recognise a command when you are in a Docker file, in which case it takes you to Docker Hub.
+    You could add Gradle there too, for build dot gradle dot K T S, or plain build dot gradle if it is a regular Groovy build file.
+
+  <break time="700ms"/>
+
+    Change any address to suit you.
+    Perhaps you prefer a different vulnerability database, or your own internal documentation site.
+    You could even point ticket numbers at GitHub issues instead of Jira.
+    Add new entries for patterns unique to your company.
+    Use the arrows to move entries up and down, because the first match wins.
+    And if you ever get tangled up, Reset to defaults puts everything back.
+
+  <break time="700ms"/>
+
+    If one of your regular expressions is invalid, Super Jump simply skips it, so a typo never breaks every other jump.
+
+  <break time="1s"/>
+
+  <!-- 14. Selection behaviour and notifications -->
+
+    Super Jump uses your selection if you have one.
+    Otherwise it uses the word under the cursor, or the whole line.
+    When something cannot be opened, or a web address is missing, you get a friendly Super Jump notification, instead of silent failure.
+
+  <break time="2s"/>
+
+  <!-- 15. IdeaVim users -->
+
+    Vim users, you have not been forgotten.
+    Add two lines to your dot ideavimrc file: nmap g j to the Super Jump action, and nmap g x to the Super Jump Git action.
+    Now it is just two keystrokes in normal mode.
+
+  <break time="2s"/>
+
+  <!-- 16. Wrap up -->
+
+    That is Super Jump.
+    One shortcut to leave your editor for the right page, and a second to share exactly where you are in your code.
+    It is free and open source, and contributions are very welcome, especially ideas for new jump patterns.
+    Find it on the JetBrains Marketplace, and report issues or suggestions on GitHub.
+    Thanks for watching, and happy jumping.
+
+</speak>
